@@ -17,10 +17,7 @@ jobs:
         with:
           target-server: ftp.executiveheads.co.uk
           remote-user: executiveheads.co.uk
-          private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          private-ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
           source-path: ./
           destination-path: public_html/wp-content/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
+          rsync-options: --archive --verbose --compress --human-readable --progress --delete-after --exclude=.git* --exclude=.git/ --exclude=node_modules/
