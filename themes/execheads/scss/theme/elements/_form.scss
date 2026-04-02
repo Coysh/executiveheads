@@ -1,0 +1,69 @@
+select {
+	border-radius: 100px;
+	background-color:#E6E6E6;
+	padding-left:$global-padding;
+	border:0;
+	background-image:none;
+	position: relative;
+	background-image:url('../img/select-arrow.svg');
+	background-size: 62px;
+	padding-right: $global-padding/2;
+
+	&:hover, &:focus {
+		background-color:#E6E6E6;
+		border:0;
+		box-shadow: none;
+	}
+
+}
+
+.input--gray {
+	background-color:#E6E6E6;
+	border-color:#E6E6E6;
+
+	&:hover, &:focus {
+		background-color:#E6E6E6;
+		border-color:#E6E6E6;		
+	}
+
+}
+
+input[type=radio] {
+	background-color: #EEE;
+    border: 0;
+    -webkit-appearance: none;
+    width: rem-calc(15);
+    height: rem-calc(15);
+    border-radius: 100%;
+    margin-bottom: 0;
+    position: relative;
+    top: rem-calc(1);
+
+	&:checked {
+		background-color: $blue;
+	}
+
+}
+
+.wpcf7-radio .wpcf7-list-item {
+	margin-right:$global-margin;
+}
+
+.wpcf7-list-item-label {
+	margin-left:$global-margin/2;
+}
+
+.form {
+	select {
+		border-radius: 0;
+		background-color:#E6E6E6;
+		background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='32' height='24' viewBox='0 0 32 24'><polygon points='0,0 32,0 16,24' style='fill: rgb%28138, 138, 138%29'></polygon></svg>");
+		background-size: 10px;
+		padding-right: 2rem;	
+	}
+
+	.button {
+		padding-left:$global-padding*2;
+		padding-right:$global-padding*2;
+	}
+}

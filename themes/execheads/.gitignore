@@ -1,0 +1,26 @@
+# ============================================================
+# Custom theme .gitignore
+# Place this at: wp-content/themes/your-custom-theme/.gitignore
+# ============================================================
+
+# Node / build tooling
+node_modules/
+.npm/
+.yarn/
+
+
+# Environment / editor
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+*.swp
+*~

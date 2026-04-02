@@ -1,0 +1,71 @@
+.article {
+	margin-bottom:$global-margin*2;
+	padding-left:$global-padding;
+	padding-right:$global-padding;
+}
+.article__content {
+	padding:$global-padding*2;
+	border-radius: 3px;
+	background-color:$light-gray;
+	height: 100%;
+}
+
+.rte-content {
+
+	.alignright {
+		@include breakpoint(large) {
+			float:right;
+			padding-left:$global-padding;
+		}
+	}
+
+	.alignleft {
+		@include breakpoint(large) {
+			float:left;		
+			padding-right:$global-padding;
+		}
+	}
+
+	a {
+		color:$deep-blue;
+		text-decoration: underline;
+
+		&:hover, &:focus {
+			color:inherit;
+		}
+
+	}
+}
+
+.home {
+	.image-grid-block {
+		position:relative;
+		
+		@include breakpoint(large) {
+			.triangle-1 {
+				z-index: 0;
+				pointer-events: none;
+				content: "";
+				background-image:url('../img/triangle-1.png');
+				background-size:cover;
+				width: rem-calc(500);
+				height:rem-calc(364);
+				bottom:0;
+				left:0;
+				position:absolute;
+			}
+			.triangle-2 {
+				z-index: 0;
+				pointer-events: none;
+				content: "";
+				background-image:url('../img/triangle-2.png');
+				background-size:cover;
+				width: rem-calc(413);
+				height:rem-calc(403);
+				bottom:0;
+				left:0;
+				position:absolute;
+			}
+		}
+	}
+}

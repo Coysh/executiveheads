@@ -1,0 +1,38 @@
+h1, h2, h3, h4, h5, h6 {
+	text-transform: uppercase;
+
+	&.regular {
+		font-weight: normal;
+	}
+
+	&.underline {
+		position:relative;
+		float: left;
+
+		&:after {
+			position: absolute;
+			bottom:rem-calc(-3);
+			left:0;
+			content:"";
+			width:100%;
+			border-bottom:2px solid $white;
+		}
+
+
+		&.underline--black {
+			&:after {
+				border-color: $black;
+			}
+		}
+
+	}
+
+}
+
+.p--large {
+	font-size: rem-calc(18);
+}
+
+.extrabold {
+	font-weight: bold;
+}

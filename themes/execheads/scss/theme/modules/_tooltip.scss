@@ -1,0 +1,58 @@
+.tooltip {
+	position:relative;
+	cursor: pointer;
+
+	&:hover, &:focus {
+		.tooltip__content {
+			opacity: 1;
+		}
+	}
+
+}
+
+.tooltip__content {
+	z-index: 10;
+	transition: opacity 300ms ease;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 100%;
+    background: $deep-blue;
+    width: rem-calc(180);
+    margin-left:rem-calc(-90);
+    padding: $global-padding;
+    text-align: left;
+    color: $white;
+    font-size: rem-calc(12);
+    margin-top:rem-calc(13);
+    border-radius: rem-calc(10);
+	opacity: 0;
+
+	p {
+		margin-bottom:rem-calc(5);
+	}
+
+	a {
+		color:$white;
+
+		&:hover, &:focus {
+			color:$white;
+		}
+
+	}
+
+	&:before {
+		content: "";
+		width: 0;
+		height: 0;
+	    border-style: solid;
+	    border-width: 0 8px 9px 8px;
+	    border-color: transparent transparent $deep-blue transparent;
+	    position: absolute;
+	    top: rem-calc(-9);
+	    left: 50%;
+	    margin-left: -5px;
+
+	}
+
+}

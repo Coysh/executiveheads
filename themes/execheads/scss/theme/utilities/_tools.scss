@@ -1,0 +1,159 @@
+.relative {
+  position: relative;
+}
+
+* {
+  outline:none;
+  background-size:cover;
+}
+
+.infinite-row {
+  max-width: rem-calc(1600);
+}
+
+.shrink-width {
+  max-width: rem-calc(1280)!important;
+}
+
+.shrink-width--super {
+  max-width: rem-calc(1080);
+}
+
+.width-100 {
+  width:100%;
+}
+
+.inline-list {
+  margin-left: -$global-margin;
+  list-style: none;
+  margin-bottom:0;
+  
+  li {
+    margin-left:$global-margin;
+    display: inline;
+  }
+
+}
+
+.inline-list--double {
+  margin-left: -$global-margin*2;
+  list-style: none;
+  margin-bottom:0;
+  
+  li {
+    margin-left:$global-margin*2;
+    display: inline;
+  }
+
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.bg--black {
+  background-color:$black;
+}
+.bg--light-gray {
+  background-color:$light-gray;
+}
+.bg--blue {
+  background-color:$blue;
+}
+.bg--deep-blue {
+  background-color: $deep-blue;
+}
+.bg--blue-gradient {
+  background-image:url('../img/blue-gradient.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.white-text {
+  color:$white;
+
+  &:hover, &:focus {
+    color:$white;
+  }
+
+}
+
+.blue-text {
+  color:$blue;
+
+  &:hover, &:focus {
+    color:$blue;
+  }
+
+}
+
+.gray-text {
+  color:#777;
+
+  &:hover, &:focus {
+    color:#777;
+  }
+
+}
+
+.no-padding {
+  padding:0;
+}
+
+.no-margin-bottom {
+  margin-bottom:0;
+}
+
+.gm-bottom {
+  margin-bottom:$global-margin;
+}
+
+@for $i from 1 through 10 {
+    $margin: $i;
+
+    .gm-bottom--#{$i} {
+        margin-bottom: $global-margin*$margin;
+    }
+}
+
+.gm-top {
+  margin-top:$global-margin;
+}
+
+@for $i from 1 through 10 {
+    $margin: $i;
+
+    .gm-top--#{$i} {
+        margin-top: $global-margin*$margin;
+    }
+}
+
+.gp-bottom {
+  padding-bottom:$global-padding;
+}
+
+blockquote {
+  font-size: rem-calc(18);
+  max-width: rem-calc(900);
+  margin-left:auto;
+  margin-right:auto;
+  font-weight: bold;
+  margin-top:$global-margin;
+  margin-bottom:$global-margin;
+}
+
+.futura {
+  font-family: 'futura-pt';
+}
+
+.angle-top {
+  clip-path: polygon(0 10%, 100% 0, 100% 100%, 0% 100%);
+}
+
+.hr--white {
+  border-color:$white;
+}
+
+.word-break {
+  word-break: break-all;
+}

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1807.536" height="498" viewBox="0 0 1807.536 498">
+  <g id="footer" transform="translate(7.536)">
+    <rect id="Rectangle_662" data-name="Rectangle 662" width="1800" height="498" transform="translate(1800 498) rotate(180)" fill="#243139" opacity="0.863"/>
+    <path id="Path_938" data-name="Path 938" d="M1989.459,3868.944l1202.4-.684,63.729,343.151-55.9,154.85H1988.714Z" transform="translate(-1996.25 -3868.26)" fill="#26333b"/>
+    <text id="ABOUT" transform="translate(186 86)" fill="#03a1bc" font-size="22" font-family="Futura-Medium, Futura" letter-spacing="0.1em" font-weight="500"><tspan x="0" y="0">ABOUT</tspan></text>
+    <text id="SERVICES" transform="translate(393 86)" fill="#03a1bc" font-size="22" font-family="Futura-Medium, Futura" letter-spacing="0.1em" font-weight="500"><tspan x="0" y="0">SERVICES</tspan></text>
+    <text id="KNOWLEDGE_HUB" data-name="KNOWLEDGE HUB" transform="translate(934 86)" fill="#03a1bc" font-size="22" font-family="Futura-Medium, Futura" letter-spacing="0.1em" font-weight="500"><tspan x="0" y="0">KNOWLEDGE HUB</tspan></text>
+    <text id="ASSIGNMENTS" transform="translate(708 86)" fill="#03a1bc" font-size="22" font-family="Futura-Medium, Futura" letter-spacing="0.1em" font-weight="500"><tspan x="0" y="0">ASSIGNMENTS</tspan></text>
+    <text id="Contact" transform="translate(1285 86)" fill="#fff" font-size="22" font-family="Futura-Medium, Futura" letter-spacing="0.1em" font-weight="500"><tspan x="0" y="0">CONTACT</tspan></text>
+    <text id="London:_020_1234_5678_Southampton:_02380_123_456_info_executiveheads.co.uk" data-name="London:
+020 1234 5678 
+
+Southampton:
+02380 123 456
+
+info@executiveheads.co.uk" transform="translate(1285 150)" fill="#fff" font-size="20" font-family="OpenSans, Open Sans"><tspan x="0" y="0">London:</tspan><tspan x="0" y="26">020 1234 5678 </tspan><tspan x="0" y="52"></tspan><tspan x="0" y="78">Southampton:</tspan><tspan x="0" y="104">02380 123 456</tspan><tspan x="0" y="130"></tspan><tspan x="0" y="156">info@executiveheads.co.uk</tspan></text>
+    <path id="linkedin" d="M20,0A20,20,0,1,0,40,20,20,20,0,0,0,20,0ZM14.188,30.234H9.317V15.58h4.871ZM11.753,13.579h-.032a2.539,2.539,0,1,1,.064-5.063,2.54,2.54,0,1,1-.032,5.063Zm20,16.655h-4.87v-7.84c0-1.97-.705-3.314-2.468-3.314a2.666,2.666,0,0,0-2.5,1.781,3.336,3.336,0,0,0-.16,1.189v8.184H16.884s.064-13.279,0-14.654h4.871v2.075a4.836,4.836,0,0,1,4.39-2.419c3.2,0,5.608,2.094,5.608,6.6Zm0,0" transform="translate(1282 391)" fill="#8b8d8e"/>
+    <g id="youtube-logotype" transform="translate(1344 391)">
+      <g id="Group_1254" data-name="Group 1254">
+        <path id="Path_915" data-name="Path 915" d="M25.676,50.453h1.586v8.582h1.5V50.453h1.615V49.047h-4.7Z" transform="translate(-15.169 -28.977)" fill="#8b8d8e"/>
+        <path id="Path_916" data-name="Path 916" d="M52.715,51.5a1.825,1.825,0,0,0-1.394.807V49.046H49.973v9.988h1.348v-.721a1.838,1.838,0,0,0,1.394.824,1.067,1.067,0,0,0,1.077-.836,5.925,5.925,0,0,0,.137-1.5V53.837a5.717,5.717,0,0,0-.137-1.5A1.067,1.067,0,0,0,52.715,51.5Zm-.135,5.405c0,.673-.2,1-.587,1a.962.962,0,0,1-.672-.332V53.043a.968.968,0,0,1,.672-.329c.389,0,.587.345.587,1.016Z" transform="translate(-29.524 -28.976)" fill="#8b8d8e"/>
+        <path id="Path_917" data-name="Path 917" d="M40.172,60.956c-.3.423-.582.631-.853.631-.18,0-.283-.106-.315-.315a4.164,4.164,0,0,1-.012-.524V55.268H37.643v5.884a3.794,3.794,0,0,0,.119,1.107.829.829,0,0,0,.869.554,2.161,2.161,0,0,0,1.541-.914v.812h1.35V55.268h-1.35Z" transform="translate(-22.239 -32.652)" fill="#8b8d8e"/>
+        <path id="Path_918" data-name="Path 918" d="M45.714,30.886c.439,0,.65-.348.65-1.044V26.679c0-.7-.211-1.043-.65-1.043s-.651.347-.651,1.043v3.164C45.063,30.538,45.274,30.886,45.714,30.886Z" transform="translate(-26.623 -15.146)" fill="#8b8d8e"/>
+        <path id="Path_919" data-name="Path 919" d="M20,0A20,20,0,1,0,40,20,20,20,0,0,0,20,0Zm2.224,9.354h1.359v5.537a3.209,3.209,0,0,0,.016.53c.03.211.137.319.32.319.273,0,.559-.211.861-.638V9.354h1.363v7.521H24.78v-.82a2.188,2.188,0,0,1-1.557.924.837.837,0,0,1-.878-.559,3.8,3.8,0,0,1-.121-1.118V9.354Zm-5.147,2.452a2.923,2.923,0,0,1,.426-1.772,2.021,2.021,0,0,1,3.177,0,2.953,2.953,0,0,1,.422,1.772v2.634a2.944,2.944,0,0,1-.422,1.769,2.024,2.024,0,0,1-3.177,0,2.913,2.913,0,0,1-.426-1.769ZM13.433,6.783l1.073,3.963,1.031-3.963h1.528l-1.818,6.005v4.088H13.736V12.788A24.857,24.857,0,0,0,12.812,9.6c-.318-.937-.65-1.876-.969-2.812h1.59ZM30.767,30.715a2.819,2.819,0,0,1-2.412,2.193A74.955,74.955,0,0,1,20,33.217a74.952,74.952,0,0,1-8.356-.309,2.818,2.818,0,0,1-2.411-2.193,23.872,23.872,0,0,1-.389-5.275,23.9,23.9,0,0,1,.394-5.275,2.817,2.817,0,0,1,2.411-2.193A74.962,74.962,0,0,1,20,17.665a74.955,74.955,0,0,1,8.356.309,2.82,2.82,0,0,1,2.413,2.193,23.947,23.947,0,0,1,.385,5.275A23.873,23.873,0,0,1,30.767,30.715Z" fill="#8b8d8e"/>
+        <path id="Path_920" data-name="Path 920" d="M64.237,55.046a1.915,1.915,0,0,0-1.615.763,2.9,2.9,0,0,0-.417,1.753v2.607a2.873,2.873,0,0,0,.433,1.75,1.93,1.93,0,0,0,1.632.762,1.865,1.865,0,0,0,1.63-.807,1.921,1.921,0,0,0,.315-.808c.013-.135.029-.434.029-.869V60H64.869a8.837,8.837,0,0,1-.029.913.58.58,0,0,1-.6.541c-.463,0-.69-.344-.69-1.032V59.1h2.7V57.561a2.925,2.925,0,0,0-.417-1.753A1.872,1.872,0,0,0,64.237,55.046Zm.66,2.935H63.548v-.689q0-1.032.677-1.032c.446,0,.672.345.672,1.032Z" transform="translate(-36.75 -32.521)" fill="#8b8d8e"/>
+      </g>
+    </g>
+    <text id="Search_and_selection_behavioural_assessments_evp_development_executive_coaching_interim_management_" data-name="Search and selection
+behavioural assessments
+evp development
+executive coaching
+interim management
+" transform="translate(393 133)" fill="#677883" font-size="20" font-family="OpenSans, Open Sans"><tspan x="0" y="0">SEARCH AND SELECTION</tspan><tspan x="0" y="33">BEHAVIOURAL ASSESSMENTS</tspan><tspan x="0" y="66">EVP DEVELOPMENT</tspan><tspan x="0" y="99">EXECUTIVE COACHING</tspan><tspan x="0" y="132">INTERIM MANAGEMENT</tspan><tspan x="0" y="165"></tspan></text>
+    <text id="meet_the_team_our_ethos_Values_Testimonials_Charity" data-name="meet the team
+our ethos
+Values
+Testimonials
+Charity" transform="translate(184 133)" fill="#677883" font-size="20" font-family="OpenSans, Open Sans"><tspan x="0" y="0">MEET THE TEAM</tspan><tspan x="0" y="33">OUR ETHOS</tspan><tspan x="0" y="66">VALUES</tspan><tspan x="0" y="99">TESTIMONIALS</tspan><tspan x="0" y="132">CHARITY</tspan></text>
+    <text id="Blog_Vlogs_events_FAq_s" data-name="Blog
+Vlogs
+events
+FAq’s" transform="translate(934 133)" fill="#677883" font-size="20" font-family="OpenSans, Open Sans"><tspan x="0" y="0">BLOG</tspan><tspan x="0" y="33">VLOGS</tspan><tspan x="0" y="66">EVENTS</tspan><tspan x="0" y="99">FAQ’S</tspan></text>
+    <text id="current_recent" data-name="current 
+recent" transform="translate(708 133)" fill="#677883" font-size="20" font-family="OpenSans, Open Sans"><tspan x="0" y="0">CURRENT </tspan><tspan x="0" y="33">RECENT</tspan></text>
+  </g>
+</svg>

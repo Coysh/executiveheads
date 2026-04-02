@@ -1,0 +1,113 @@
+.hero {
+	position: relative;
+	background-position: bottom center;
+	padding-top:rem-calc(100);
+	padding-bottom:rem-calc(100);
+
+	@include breakpoint(large) {
+		min-height: rem-calc(600);
+	}
+
+}
+
+.hero--with-triangles {
+	&:before {
+		content:"";
+		background-image: url('../img/coloured-triangles.svg');
+		background-repeat: no-repeat;
+		background-position: top right;
+		background-size: 100px;		
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top:0;
+		right:0;
+		z-index:10;
+
+		@include breakpoint(medium) {
+			background-size:180px;
+		}
+
+		@include breakpoint(large) {
+			background-size: 240px;		
+		}
+
+	}
+}
+
+.hero__content {
+	color:$white;
+	width: 100%;
+	max-width: rem-calc(1280);
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+}
+
+.hero__h1 {
+	font-family: 'Open Sans';
+	font-weight: 100;
+	text-transform: none;
+}
+
+.bg--triangles {
+	background-repeat: no-repeat;
+	background-position: -50% -340%;
+}
+
+.hero--home {
+	overflow: hidden;
+
+	@include breakpoint(medium down) {
+		padding-left:$global-padding;
+		padding-right:$global-padding;
+
+		.responsive-embed {
+			display: none!important;
+		}
+	}
+
+	@include breakpoint(large) {
+		padding-top:0;
+		padding-bottom:0;
+		background-image:url('../img/slash.jpg')!important;
+		background-position: bottom right;
+		background-repeat: no-repeat;
+		background-size:contain;
+
+		iframe {
+			background-color: $deep-blue;
+			clip-path: polygon(0 0, 100% 0, 100% 87%, 0% 98%);
+		}
+	}
+
+	.hero__content {
+		z-index: 10;
+		
+		.row {
+			max-width: 100%;
+			max-width: 90vw;
+		}
+
+		@include breakpoint(large) {
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			left:8.33%;
+			top:50%;
+		    transform: translateY(-50%);
+		    max-width: rem-calc(700);
+		}
+
+
+	}
+
+}
+
+.hero__slider__text {
+	@include breakpoint(medium down) {
+		br {
+			display:none!important;
+		}
+	}
+}

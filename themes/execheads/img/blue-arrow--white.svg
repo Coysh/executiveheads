@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="17px" height="27px" viewBox="0 0 17 27" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 57.1 (83088) - https://sketch.com -->
+    <title>blue-arrow</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="blue-arrow" transform="translate(-1.000000, -1.000000)" fill="#FFFFFF" fill-rule="nonzero">
+            <g id="arrow-down-sign-to-navigate" transform="translate(9.859000, 14.001000) rotate(-90.000000) translate(-9.859000, -14.001000) translate(-3.641000, 5.001000)">
+                <path d="M13.251,17.152 C12.7458606,17.146808 12.2675765,16.923706 11.939,16.54 L0.544,3.708 C-0.180831373,2.85596687 -0.180831373,1.60403313 0.544,0.752 C0.86947647,0.364279686 1.34977675,0.140374142 1.856,0.140374142 C2.36222325,0.140374142 2.84252353,0.364279686 3.168,0.752 L13.25,12.107 L23.333,0.753 C23.6584765,0.365279686 24.1387768,0.141374142 24.645,0.141374142 C25.1512232,0.141374142 25.6315235,0.365279686 25.957,0.753 C26.6822488,1.60487954 26.6822488,2.85712046 25.957,3.709 L14.563,16.541 C14.2342379,16.9243337 13.7559801,17.147059 13.251,17.152 Z" id="Path_914"></path>
+            </g>
+        </g>
+    </g>
+</svg>

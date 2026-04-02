@@ -1,0 +1,29 @@
+.testimonial__image {
+	background-size: cover;
+	background-position: bottom left;
+}
+
+.testimonial__text {
+	margin-top:$global-margin;
+
+	&:before, &:after {
+		font-family: 'futura-pt';
+		color:$light-blue;
+		font-size: rem-calc(90);
+	    font-weight: bold;
+	    line-height: 0;
+	}
+
+	&:before {
+		content: "“";
+	}
+	&:after {
+		content: "“";
+		position: relative;
+		top:rem-calc(60);
+	}
+}
+
+#arrows {
+	position: relative;
+}

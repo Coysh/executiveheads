@@ -4,9 +4,14 @@
 # --- Then explicitly allow your custom folders ---
 # Uncomment and rename these to match your actual folder names:
  
+!themes/
 !themes/execheads/
+!themes/execheads/**
+!plugins/
 !plugins/exec-heads-jobadder/
+!plugins/exec-heads-jobadder/**
 !plugins/exheads/
+!plugins/exheads/**
  
 # Allow .gitignore files within those folders
 !.gitignore

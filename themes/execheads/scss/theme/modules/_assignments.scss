@@ -1,0 +1,31 @@
+.assignment {
+	margin-bottom:$global-margin*2;
+	transition: opacity ease 300ms;
+}
+.assignment__content {
+	padding:$global-padding*2;
+	border-radius: 3px;
+	background-color:$light-gray;
+}
+
+.assignments--blue {
+	.assignment__content {
+		background-color:$barely-blue;
+	}
+}
+
+.assignment__contents {
+	@include breakpoint(medium) {
+		order:2;
+	}
+}
+
+.assignment__details {
+	@include breakpoint(medium) {
+		order:1;
+	}
+}
+
+.managedby__image {
+	max-width:rem-calc(200);
+}

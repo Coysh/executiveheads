@@ -1,0 +1,39 @@
+.summary {
+	padding:$global-padding*2 $global-padding;
+	margin-bottom:$global-margin*2;
+}
+
+.summary__table {
+	border:0;
+
+	tbody {
+		background:transparent;
+		border:0;
+	}
+
+	tr {
+		background:transparent;
+		
+		&:nth-child(even) {
+			background:transparent;	
+		}
+
+	}
+
+	td {
+		vertical-align: top;
+		padding-top:$global-padding;
+		padding-bottom:$global-padding;
+	}
+
+	td:nth-child(odd) {
+		width:rem-calc(180);
+	}
+
+}
+
+.summary--testimonial {
+	background-color:#d6eef5;
+	padding-top:rem-calc(75);
+	padding-bottom:rem-calc(75);
+}
