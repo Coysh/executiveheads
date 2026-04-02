@@ -15,7 +15,7 @@ jobs:
       - name: 📂 Sync files
         uses: SamKirkland/web-deploy@v1
         with:
-          target-server: ftp.executiveheads.co.uk
+          target-server: ssh.gb.stackcp.com
           remote-user: executiveheads.co.uk
           private-ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
           source-path: ./
