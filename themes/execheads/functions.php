@@ -1,5 +1,4 @@
 <?php 
-echo "test"; 
 function execheads_theme_setup() {
   register_nav_menus( array( 
     'header' => 'Header menu',
