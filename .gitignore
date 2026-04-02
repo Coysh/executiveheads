@@ -1,0 +1,20 @@
+# Ignore everything by default
+*
+ 
+# --- Then explicitly allow your custom folders ---
+# Uncomment and rename these to match your actual folder names:
+ 
+!themes/execheads/
+!plugins/exec-heads-jobadder/
+!plugins/exheads/
+ 
+# Allow .gitignore files within those folders
+!.gitignore
+ 
+# Always ignore these even if inside tracked folders
+uploads/
+upgrade/
+cache/
+backup*/
+*.log
+ 
