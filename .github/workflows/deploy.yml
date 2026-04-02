@@ -14,16 +14,16 @@ jobs:
 
       - name: 🔑 Setup SSH key
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > /tmp/deploy_key
-          chmod 600 /tmp/deploy_key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan ssh.gb.stackcp.com >> ~/.ssh/known_hosts
 
       - name: 📂 Sync files
-        uses: SamKirkland/web-deploy@v1
-        with:
-          target-server: ssh.gb.stackcp.com
-          remote-user: executiveheads.co.uk
-          private-ssh-key: /tmp/deploy_key
-          source-path: ./
-          destination-path: public_html/wp-content/
-          ssh-port: 22
-          rsync-options: --archive --verbose --compress --human-readable --progress --delete-after --exclude=.git* --exclude=.git/ --exclude=node_modules/
+        run: |
+          rsync -e "ssh -p 22 -i ~/.ssh/deploy_key" \
+            --archive --verbose --compress \
+            --delete-after \
+            --exclude='.git*' \
+            --exclude='node_modules/' \
+            ./ executiveheads.co.uk@ssh.gb.stackcp.com:public_html/wp-content/
