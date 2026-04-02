@@ -26,4 +26,5 @@ jobs:
             --delete-after \
             --exclude='.git*' \
             --exclude='node_modules/' \
+            --exclude='uploads/' \
             ./ executiveheads.co.uk@ssh.gb.stackcp.com:public_html/wp-content/
