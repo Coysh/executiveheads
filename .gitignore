@@ -12,6 +12,9 @@
 !plugins/exec-heads-jobadder/**
 !plugins/exheads/
 !plugins/exheads/**
+!.github/
+!.github/workflows/
+!.github/workflows/**
  
 # Allow .gitignore files within those folders
 !.gitignore
