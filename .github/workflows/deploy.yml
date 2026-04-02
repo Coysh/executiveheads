@@ -12,12 +12,18 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
 
+      - name: 🔑 Setup SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+
       - name: 📂 Sync files
         uses: SamKirkland/web-deploy@v1
         with:
           target-server: ssh.gb.stackcp.com
           remote-user: executiveheads.co.uk
-          private-ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          private-ssh-key: /tmp/deploy_key
           source-path: ./
           destination-path: public_html/wp-content/
+          ssh-port: 22
           rsync-options: --archive --verbose --compress --human-readable --progress --delete-after --exclude=.git* --exclude=.git/ --exclude=node_modules/
