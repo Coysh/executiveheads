@@ -165,18 +165,23 @@ function jobadder_options_page() {
 
 add_filter('cron_schedules', 'add_custom_cron_interval');
 
-function add_custom_cron_interval($schedules) {
+function add_custom_cron_interval($schedules)
+{
 	$schedules['every_thirty_minutes'] = array(
-		'interval' => 1800, // 1800 seconds = 30 minutes
-		'display'  => esc_html__('Every Thirty Minutes'),
+		'interval' => 1800,
+		'display' => esc_html__('Every Thirty Minutes'),
 	);
 
 	return $schedules;
 }
 
-if (!wp_next_scheduled('update_jobs_from_jobadder_hook')) {
-	wp_schedule_event(time(), 'every_thirty_minutes', 'update_jobs_from_jobadder_hook');
+function jobadder_register_cron_event()
+{
+	if (!wp_next_scheduled('update_jobs_from_jobadder_hook')) {
+		wp_schedule_event(time(), 'every_thirty_minutes', 'update_jobs_from_jobadder_hook');
+	}
 }
+add_action('init', 'jobadder_register_cron_event');
 
 add_action('update_jobs_from_jobadder_hook', 'update_jobs_from_jobadder');
 

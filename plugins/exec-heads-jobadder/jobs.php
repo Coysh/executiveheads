@@ -7,6 +7,10 @@
  * @return string|null The value corresponding to the label, or null if not found.
  */
 function find_acf_choice_value_by_label($label, $field_key) {
+	if (!function_exists('get_field_object')) {
+		return null;
+	}
+
 	// Get the field object using ACF's get_field_object function
 	$field = get_field_object($field_key);
 	
@@ -26,277 +30,388 @@ function find_acf_choice_value_by_label($label, $field_key) {
 	return null;
 }
 
-function update_jobs_from_jobadder() {
-    if (get_option('jobadder_needs_reauth')) {
-        jobadder_log('Re-authentication required. Visit /jobadder-import to reconnect.', 'error');
-        return;
-    }
+function jobadder_refresh_default_options($options = array()) {
+	$defaults = array(
+		'cli_mode' => false,
+		'verbose' => false,
+		'debug' => false,
+		'dry_run' => false,
+		'limit' => 0,
+	);
 
-	jobadder_log('', 'info');  
-	jobadder_log('#####Start updating jobs from JobAdder#####', 'info');  
-	jobadder_log('', 'info');  
+	return array_merge($defaults, $options);
+}
 
-	// Assuming jobadder_get_job_ads_from_board() returns an array of job ads
-	$job_ads = jobadder_get_job_ads_from_board();
-	if (empty($job_ads) || !isset($job_ads['items']) || empty($job_ads['items'])) {
-		jobadder_log('No job ads found or unable to retrieve job ads. Stop update.', 'error');
+function jobadder_refresh_cli_write($message, $level, $options, $force = false) {
+	if (!(defined('WP_CLI') && WP_CLI) || empty($options['cli_mode'])) {
 		return;
 	}
 
-	// Check each 'assignments' post and set it to draft if two weeks past the 'closing_date'
-	$assignments = new WP_Query([
+	$is_verbose = !empty($options['verbose']);
+	$is_debug = !empty($options['debug']);
+	$should_write = $force || in_array($level, array('warning', 'error'), true) || $is_verbose || $is_debug;
+
+	if (!$should_write) {
+		return;
+	}
+
+	if ($level === 'warning') {
+		WP_CLI::warning($message);
+		return;
+	}
+
+	if ($level === 'error') {
+		WP_CLI::line('[error] ' . $message);
+		return;
+	}
+
+	if ($level === 'debug' && !$is_debug) {
+		return;
+	}
+
+	WP_CLI::line('[' . $level . '] ' . $message);
+}
+
+function jobadder_refresh_report(&$result, $options, $message, $level = 'info', $force_cli = false) {
+	jobadder_log($message, $level);
+	jobadder_refresh_cli_write($message, $level, $options, $force_cli);
+
+	if ($level === 'warning') {
+		$result['warnings'][] = $message;
+	}
+
+	if ($level === 'error') {
+		$result['errors'][] = $message;
+	}
+}
+
+function jobadder_refresh_result_template($options) {
+	return array(
+		'success' => true,
+		'dry_run' => !empty($options['dry_run']),
+		'start_time' => microtime(true),
+		'duration_seconds' => 0,
+		'warnings' => array(),
+		'errors' => array(),
+		'counts' => array(
+			'fetched_ads' => 0,
+			'processed_ads' => 0,
+			'created_posts' => 0,
+			'updated_posts' => 0,
+			'skipped_ads' => 0,
+			'expired_to_draft' => 0,
+			'moved_to_recent' => 0,
+			'recruiter_misses' => 0,
+			'api_failures' => 0,
+		),
+	);
+}
+
+function jobadder_run_refresh($options = array()) {
+	$options = jobadder_refresh_default_options($options);
+	$result = jobadder_refresh_result_template($options);
+
+	if (get_option('jobadder_needs_reauth')) {
+		$result['success'] = false;
+		jobadder_refresh_report($result, $options, 'Re-authentication required. Visit /jobadder-import to reconnect.', 'error', true);
+		$result['duration_seconds'] = microtime(true) - $result['start_time'];
+		return $result;
+	}
+
+	jobadder_refresh_report($result, $options, '', 'info');
+	jobadder_refresh_report($result, $options, '#####Start updating jobs from JobAdder#####', 'info', true);
+	jobadder_refresh_report($result, $options, 'Refresh options: dry_run=' . (!empty($options['dry_run']) ? 'yes' : 'no') . ', verbose=' . (!empty($options['verbose']) ? 'yes' : 'no') . ', debug=' . (!empty($options['debug']) ? 'yes' : 'no') . ', limit=' . (int) $options['limit'], 'debug');
+	jobadder_refresh_report($result, $options, '', 'info');
+
+	$job_ads = jobadder_get_job_ads_from_board();
+	if (!empty($job_ads['_error'])) {
+		$result['success'] = false;
+		$result['counts']['api_failures']++;
+		jobadder_refresh_report($result, $options, 'Unable to retrieve job ads. ' . $job_ads['_error'], 'error', true);
+		$result['duration_seconds'] = microtime(true) - $result['start_time'];
+		return $result;
+	}
+
+	if (!isset($job_ads['items']) || !is_array($job_ads['items'])) {
+		$result['success'] = false;
+		$result['counts']['api_failures']++;
+		jobadder_refresh_report($result, $options, 'JobAdder ads payload did not include a valid items array.', 'error', true);
+		$result['duration_seconds'] = microtime(true) - $result['start_time'];
+		return $result;
+	}
+
+	$result['counts']['fetched_ads'] = count($job_ads['items']);
+	$jobadder_board_id = isset($job_ads['_board_id']) ? $job_ads['_board_id'] : JOBADDER_JOB_BOARD;
+	$jobadder_status = isset($job_ads['_status_code']) ? (int) $job_ads['_status_code'] : 0;
+	$jobadder_total = isset($job_ads['_total_count']) ? (int) $job_ads['_total_count'] : $result['counts']['fetched_ads'];
+	jobadder_refresh_report($result, $options, 'Fetched ' . $result['counts']['fetched_ads'] . ' ads from JobAdder board ' . $jobadder_board_id . ' (HTTP ' . $jobadder_status . ', totalCount=' . $jobadder_total . ').', 'info', true);
+
+	if ($result['counts']['fetched_ads'] === 0) {
+		jobadder_refresh_report($result, $options, 'No active ads were returned by JobAdder for this board. This run will continue for housekeeping but no jobs will be imported.', 'warning', true);
+	}
+
+	$assignments = new WP_Query(array(
 		'post_type' => 'assignments',
 		'post_status' => 'publish',
 		'posts_per_page' => -1,
-	]);
+	));
 
-	jobadder_log('Looping through assignments', 'info');  
+	jobadder_refresh_report($result, $options, 'Looping through assignments to detect expired posts.', 'info', true);
 	if ($assignments->have_posts()) {
 		while ($assignments->have_posts()) {
 			$assignments->the_post();
-			$closing_date = get_field('closing_date', get_the_ID()); // ACF get_field to fetch 'closing_date'
-			$expire_date = new DateTime($closing_date);
-			$expire_date->add(new DateInterval('P2M')); // Add 2 months to the closing date
-			
-			$current_date = new DateTime(); // Today's date
-			
-			
+			$assignment_id = get_the_ID();
+			$assignment_title = get_the_title();
+			$closing_date = function_exists('get_field') ? get_field('closing_date', $assignment_id) : get_post_meta($assignment_id, 'closing_date', true);
+
+			if (empty($closing_date)) {
+				jobadder_refresh_report($result, $options, 'Assignment [' . $assignment_title . '] has no closing date. Skipping expiry draft check.', 'debug');
+				continue;
+			}
+
+			try {
+				$expire_date = new DateTime($closing_date);
+				$expire_date->add(new DateInterval('P2M'));
+			} catch (Exception $e) {
+				jobadder_refresh_report($result, $options, 'Unable to parse closing date for assignment [' . $assignment_title . ']: ' . $closing_date, 'warning');
+				continue;
+			}
+
+			$current_date = new DateTime();
 			if ($current_date >= $expire_date) {
-				jobadder_log('Assignment [' . get_the_title() . '] has expired, setting to draft', 'info');
-				wp_update_post([
-					'ID' => get_the_ID(),
-					'post_status' => 'draft',
-				]);
+				$result['counts']['expired_to_draft']++;
+				if (empty($options['dry_run'])) {
+					wp_update_post(array(
+						'ID' => $assignment_id,
+						'post_status' => 'draft',
+					));
+					jobadder_refresh_report($result, $options, 'Assignment [' . $assignment_title . '] has expired, setting to draft.', 'info');
+				} else {
+					jobadder_refresh_report($result, $options, '[dry-run] Assignment [' . $assignment_title . '] would be set to draft.', 'info');
+				}
 			} else {
-				jobadder_log('Assignment [' . get_the_title() . '] is still active', 'info');
+				jobadder_refresh_report($result, $options, 'Assignment [' . $assignment_title . '] is still active.', 'debug');
 			}
 		}
 	}
 
-	//25/04/2024
-
 	wp_reset_postdata();
 
-	// Fetch assignments with a past 'closing_date'
+	$recent_term = get_term_by('slug', 'recent', 'category');
+	$current_term = get_term_by('slug', 'current', 'category');
+	$recent_term_id = $recent_term ? $recent_term->term_id : 0;
+	$current_term_id = $current_term ? $current_term->term_id : 0;
 
-	$recent_term_id = get_term_by('slug', 'recent', 'category')->term_id; // Get "Recent" category ID
-	$current_term_id = get_term_by('slug', 'current', 'category')->term_id; // Get "Current" category ID
+	if (!$recent_term_id || !$current_term_id) {
+		jobadder_refresh_report($result, $options, 'Could not resolve one or more required category terms: recent/current.', 'warning', true);
+	}
 
-	$current_date = current_time('Ymd'); // Get current date in same format as ACF date field
-	$args = [
+	$current_date = current_time('Ymd');
+	$args = array(
 		'post_type' => 'assignments',
 		'posts_per_page' => -1,
-		'meta_query' => [
-			[
-				'key' => 'closing_date', // ACF Field Key
+		'meta_query' => array(
+			array(
+				'key' => 'closing_date',
 				'value' => $current_date,
-				'compare' => '<', // Less than today's date
+				'compare' => '<',
 				'type' => 'DATE',
-			],
-		],
-		'tax_query' => [ // Exclude assignments in the 'recent' category
-			[
+			),
+		),
+	);
+
+	if ($recent_term_id) {
+		$args['tax_query'] = array(
+			array(
 				'taxonomy' => 'category',
 				'field' => 'term_id',
 				'terms' => $recent_term_id,
 				'operator' => 'NOT IN',
-			],
-		],
-	];
+			),
+		);
+	}
 
 	$assignments = new WP_Query($args);
 	if ($assignments->have_posts()) {
-
 		while ($assignments->have_posts()) {
 			$assignments->the_post();
 			$post_id = get_the_ID();
-
-			// Add to "Recent" category
-			wp_set_post_terms($post_id, [$recent_term_id], 'category', true);
-
-			// Remove "Current" category
-			wp_remove_object_terms($post_id, $current_term_id, 'category');
-
 			$post_title = get_the_title($post_id);
 
-			jobadder_log('Assignment ['.$post_title.'] has expired, add to recent assignments', 'info');  
+			$result['counts']['moved_to_recent']++;
+			if (empty($options['dry_run'])) {
+				if ($recent_term_id) {
+					wp_set_post_terms($post_id, array($recent_term_id), 'category', true);
+				}
+
+				if ($current_term_id) {
+					wp_remove_object_terms($post_id, $current_term_id, 'category');
+				}
+
+				jobadder_refresh_report($result, $options, 'Assignment [' . $post_title . '] has expired, add to recent assignments.', 'info');
+			} else {
+				jobadder_refresh_report($result, $options, '[dry-run] Assignment [' . $post_title . '] would be moved to recent assignments.', 'info');
+			}
 		}
 	}
 
 	wp_reset_postdata();
 
+	$job_count = 0;
+	foreach ($job_ads['items'] as $ad_index => $ad_preview) {
+		if (!empty($options['limit']) && $job_count >= (int) $options['limit']) {
+			jobadder_refresh_report($result, $options, 'Reached --limit value of ' . (int) $options['limit'] . '. Remaining jobs were skipped.', 'warning', true);
+			break;
+		}
 
-	foreach ($job_ads['items'] as $ad) {
+		$job_count++;
+		jobadder_refresh_report($result, $options, '', 'info');
+		jobadder_refresh_report($result, $options, '-----Start Processing Job #' . ($ad_index + 1) . '-----', 'info', true);
 
-		jobadder_log('', 'info');  
-		jobadder_log('-----Start Processing Job-----', 'info');  
+		if (empty($ad_preview['adId']) || empty($ad_preview['reference'])) {
+			$result['counts']['skipped_ads']++;
+			jobadder_refresh_report($result, $options, 'Ad payload is missing adId or reference. Skipping record.', 'warning');
+			continue;
+		}
 
-		$ad = jobadder_get_job_ad_details($ad['adId']);
-		$job = jobadder_get_job_details($ad['reference']);
-
-		#echo "<pre>Ad:";print_r($ad);echo "\n\n\nJob:";print_r($job);echo "</pre>";
+		$ad = jobadder_get_job_ad_details($ad_preview['adId']);
+		$job = jobadder_get_job_details($ad_preview['reference']);
 
 		if (empty($ad)) {
-			jobadder_log('Unable to retrieve job ad details.', 'error');
+			$result['counts']['api_failures']++;
+			$result['counts']['skipped_ads']++;
+			jobadder_refresh_report($result, $options, 'Unable to retrieve job ad details for adId ' . $ad_preview['adId'] . '.', 'error');
 			continue;
 		}
 
 		if (empty($job)) {
-			jobadder_log('Unable to retrieve job details for: '.$ad['title'], 'error');
+			$result['counts']['api_failures']++;
+			$result['counts']['skipped_ads']++;
+			jobadder_refresh_report($result, $options, 'Unable to retrieve job details for: ' . ($ad['title'] ?? $ad_preview['adId']), 'error');
 			continue;
 		}
 
-		jobadder_log('Job title: ' . $ad['title'], 'info');
-		jobadder_log('Job ID: ' . $ad['adId'], 'info');
+		$result['counts']['processed_ads']++;
+		jobadder_refresh_report($result, $options, 'Job title: ' . ($ad['title'] ?? '(untitled)'), 'info');
+		jobadder_refresh_report($result, $options, 'Job ID: ' . ($ad['adId'] ?? '(missing)'), 'info');
 
-		//Get user id
 		$recruiter_email = $job['owner']['email'] ?? null;
 		$recruiter_id = null;
 		if ($recruiter_email) {
-			jobadder_log('Found recruiter email: '.$recruiter_email, 'info');
+			jobadder_refresh_report($result, $options, 'Found recruiter email: ' . $recruiter_email, 'debug');
 
-			//look up the assignment by jid
-			$user_args = array(
+			$user_query = new WP_Query(array(
 				'post_type' => 'team',
 				'posts_per_page' => 1,
-				'post_status' => array('publish', 'pending', 'draft', 'auto-draft', 'future', 'private', 'inherit'),							
+				'post_status' => array('publish', 'pending', 'draft', 'auto-draft', 'future', 'private', 'inherit'),
 				'meta_query' => array(
 					array(
 						'key' => 'tm_email',
 						'value' => (string) $recruiter_email,
-						'compare' => '='
-					)
+						'compare' => '=',
+					),
 				),
-			);
-			#echo "<pre>";print_r($user_args);echo "</pre>";
-			$user_query = new WP_Query($user_args);		   
-			if($user_query->have_posts()) {
-				while($user_query->have_posts()) {
-					//update the assignment fields
+			));
+
+			$user_id = 0;
+			if ($user_query->have_posts()) {
+				while ($user_query->have_posts()) {
 					$user_query->the_post();
 					$user_id = get_the_ID();
 				}
 			}
+			wp_reset_postdata();
 
-
-			if(!isset($user_id) || $user_id == '' || $user_id == null) {
-				$recruiter_id = null;
-				jobadder_log('Could not find a user with the email', 'error');
+			if (!$user_id) {
+				$result['counts']['recruiter_misses']++;
+				jobadder_refresh_report($result, $options, 'Could not find a team member with recruiter email ' . $recruiter_email . '.', 'warning');
 			} else {
-				$recruiter_id = [$user_id];
-				jobadder_log('Found user id: '.$user_id, 'info');
+				$recruiter_id = array($user_id);
+				jobadder_refresh_report($result, $options, 'Found team member id: ' . $user_id, 'debug');
 			}
 		}
-
-
 
 		$owner_email = $job['owner']['email'] ?? null;
+		$author = $owner_email ? get_user_by('email', $owner_email) : null;
+		$author_id = $author ? $author->ID : null;
 
-		$author = get_user_by('email', $owner_email) ?? null;
-		if ($author) {
-			$author_id = $author->ID;
-		} else {
-			$author_id = null;
+		if (!$author_id) {
+			jobadder_refresh_report($result, $options, 'No WordPress user found for owner email: ' . ($owner_email ?: '(empty)') . '. Post author will be empty.', 'debug');
 		}
 
-		//Closing date
-		$closing_date = $ad['expiresAt'] ?? null;
-
-		// Update ACF date picker field `closing_date`
-		if ($closing_date) {
-			//update_field('closing_date', $closing_date, $post_id);
-		}
-
-
-		// Initialize variables
-		$locationId = null;
 		$locationName = null;
-		$workTypeId = null;
 		$workTypeName = null;
-		$categoryId = null;
-		$categoryName = null;
-		$category_terms = [];
-		$location_terms = [];
-		$workType_terms = [];
+		$location_term = null;
+		$workType_term = null;
+		$category_term = null;
+		$category_terms = array();
+		$location_terms = array();
+		$workType_terms = array();
 		$salary = '';
 
-		// Check if the 'fields' array exists and is not empty
 		if (isset($ad['portal']['fields']) && !empty($ad['portal']['fields'])) {
-			// Loop through each field
 			foreach ($ad['portal']['fields'] as $field) {
-				// Check for 'Category' field and assign values
-				if ($field['fieldName'] == 'Category') {
-					$categoryId = $field['valueId'];
-					$categoryName = $field['value'];
-					$category_term = get_term_by('name', $categoryName, 'jobs_category')->term_id ?? null;
+				if (($field['fieldName'] ?? '') === 'Category') {
+					$categoryName = $field['value'] ?? '';
+					$category_term_obj = get_term_by('name', $categoryName, 'jobs_category');
+					$category_term = $category_term_obj ? $category_term_obj->term_id : null;
 				}
-				// Check for 'Location' field and assign values
-				if ($field['fieldName'] == 'Location') {
-					$locationId = $field['valueId'];
-					$locationName = $field['value'];
-					$location_term = get_term_by('name', $locationName, 'jobs_category')->term_id ?? null;
+
+				if (($field['fieldName'] ?? '') === 'Location') {
+					$locationName = $field['value'] ?? null;
+					$location_term_obj = get_term_by('name', $locationName, 'jobs_category');
+					$location_term = $location_term_obj ? $location_term_obj->term_id : null;
 				}
-				// Check for 'Work Type' field and assign values
-				if ($field['fieldName'] == 'Work Type') {
-					$workTypeId = $field['valueId'];
-					$workTypeName = $field['value'];
-					$workType_term = get_term_by('name', $workTypeName, 'jobs_category')->term_id ?? null;
+
+				if (($field['fieldName'] ?? '') === 'Work Type') {
+					$workTypeName = $field['value'] ?? null;
+					$work_type_term_obj = get_term_by('name', $workTypeName, 'jobs_category');
+					$workType_term = $work_type_term_obj ? $work_type_term_obj->term_id : null;
 				}
-				//Check for 'Salary text' field and assign values
-				if ($field['fieldName'] == 'Salary text') {
-					#echo "Found salary: ".$field['value']."\n";
-					$salary = $field['value'];
+
+				if (($field['fieldName'] ?? '') === 'Salary text') {
+					$salary = $field['value'] ?? '';
 				}
 			}
 		}
 
-		//Get terms
-		if($category_term) {
+		if ($category_term) {
 			$category_terms[] = $category_term;
 		}
-		if($location_term) {
+
+		if ($location_term) {
 			$location_terms[] = $location_term;
 		}
-		if($workType_term) {
+
+		if ($workType_term) {
 			$workType_terms[] = $workType_term;
 		}
 
-		
-
-
-		// Prepare data for custom post type 'jobs'
 		$metaValues = array(
 			'custom_salary_display' => $salary,
 			'salary' => $salary,
-			'description' => $ad['description'],
-			'reference' => $ad['reference'],
-			'short_description' => $ad['summary'],
+			'description' => $ad['description'] ?? '',
+			'reference' => $ad['reference'] ?? '',
+			'short_description' => $ad['summary'] ?? '',
 			'location' => $locationName,
-			'content' => $ad['description'],
-			//'bullet_points' => implode("\n", $ad['bulletPoints']), // Convert bullet points array to a string
-			//'screening_questions' => serialize($ad['screening']), // Serialize the screening questions array for storage
-			'posted' => $ad['postedAt'],
-			'closing_date' => $ad['expiresAt'],
-			'apply_url' => $ad['links']['ui']['self'],
-			'jid' => $ad['adId'],
+			'content' => $ad['description'] ?? '',
+			'posted' => $ad['postedAt'] ?? '',
+			'closing_date' => $ad['expiresAt'] ?? '',
+			'apply_url' => $ad['links']['ui']['self'] ?? '',
+			'jid' => $ad['adId'] ?? '',
 			'choose_member' => $recruiter_id,
-			// Add more meta values as needed
 		);
 
-		//echo "<pre>";print_r($metaValues);echo "</pre>";exit;
-
-		// Convert job ad details to post args for wp_insert_post or wp_update_post
 		$post_args = array(
 			'post_type' => 'assignments',
-			'post_title' => $ad['title'],
-			'post_name'	 => sanitize_title($ad['title'] . '-' . $ad['adId']),
-			'post_category' => array(1), //current
+			'post_title' => $ad['title'] ?? '(untitled)',
+			'post_name' => sanitize_title(($ad['title'] ?? 'job') . '-' . ($ad['adId'] ?? 'unknown')),
+			'post_category' => array(1),
 			'post_status' => 'publish',
 			'meta_input' => $metaValues,
-			'post_author'   => $author_id
+			'post_author' => $author_id,
 		);
 
-		// Find or create the job post
 		$existing_job_query = new WP_Query(array(
 			'post_type' => 'assignments',
 			'post_status' => 'any',
@@ -310,67 +425,174 @@ function update_jobs_from_jobadder() {
 			'posts_per_page' => 1,
 		));
 
+		$post_id = 0;
 		if ($existing_job_query->have_posts()) {
 			$existing_job_query->the_post();
 			$post_id = get_the_ID();
-			$post_args['ID'] = $post_id; // Specify ID to update the existing post
-			wp_update_post($post_args);
+			$post_args['ID'] = $post_id;
 
-			if (defined('WP_CLI') && WP_CLI) {
-				WP_CLI::line('Updated existing job - ID: '.$post_id);
+			if (empty($options['dry_run'])) {
+				$update_result = wp_update_post($post_args, true);
+				if (is_wp_error($update_result)) {
+					$result['counts']['skipped_ads']++;
+					jobadder_refresh_report($result, $options, 'Failed to update existing job [' . $post_id . ']: ' . $update_result->get_error_message(), 'error');
+					wp_reset_postdata();
+					continue;
+				}
+				$result['counts']['updated_posts']++;
+				jobadder_refresh_report($result, $options, 'Updated existing job - ID: ' . $post_id, 'info', true);
+			} else {
+				$result['counts']['updated_posts']++;
+				jobadder_refresh_report($result, $options, '[dry-run] Would update existing job - ID: ' . $post_id, 'info', true);
 			}
-			jobadder_log('Updated existing job - ID: ' . $post_id, 'info');
 		} else {
-			$post_id = wp_insert_post($post_args);
-			if (defined('WP_CLI') && WP_CLI) {
-				WP_CLI::line('Created new job - ID: '.$post_id);
+			if (empty($options['dry_run'])) {
+				$insert_result = wp_insert_post($post_args, true);
+				if (is_wp_error($insert_result)) {
+					$result['counts']['skipped_ads']++;
+					jobadder_refresh_report($result, $options, 'Failed to create new job [' . ($ad['title'] ?? '(untitled)') . ']: ' . $insert_result->get_error_message(), 'error');
+					wp_reset_postdata();
+					continue;
+				}
+
+				$post_id = (int) $insert_result;
+				$result['counts']['created_posts']++;
+				jobadder_refresh_report($result, $options, 'Created new job - ID: ' . $post_id, 'info', true);
+			} else {
+				$result['counts']['created_posts']++;
+				jobadder_refresh_report($result, $options, '[dry-run] Would create new job [' . ($ad['title'] ?? '(untitled)') . '].', 'info', true);
 			}
-			jobadder_log('Created new job - ID: ' . $post_id, 'info');
 		}
 
-		// Example usage for a location field
-		$locationValue = find_acf_choice_value_by_label($locationName, 'field_5863d63f45e80');
-		if ($locationValue !== null) {
-			update_field('field_5863d63f45e80', array($locationValue), $post_id);
+		wp_reset_postdata();
+
+		if (empty($options['dry_run']) && $post_id) {
+			$locationValue = find_acf_choice_value_by_label($locationName, 'field_5863d63f45e80');
+			if ($locationValue !== null && function_exists('update_field')) {
+				update_field('field_5863d63f45e80', array($locationValue), $post_id);
+			}
+
+			$workTypeValue = find_acf_choice_value_by_label($workTypeName, 'field_5863a37bb379c');
+			if ($workTypeValue !== null && function_exists('update_field')) {
+				update_field('field_5863a37bb379c', array($workTypeValue), $post_id);
+			}
+
+			if (!function_exists('update_field')) {
+				jobadder_refresh_report($result, $options, 'ACF update_field() is unavailable in this runtime; skipping ACF field writes for post ' . $post_id . '.', 'warning');
+			}
+
+			wp_set_post_terms($post_id, array_merge($location_terms, $workType_terms), 'jobs_category');
+		} else {
+			jobadder_refresh_report($result, $options, '[dry-run] Skipped ACF and taxonomy updates for this job.', 'debug');
 		}
 
-		// Example usage for a work type field
-		$workTypeValue = find_acf_choice_value_by_label($workTypeName, 'field_5863a37bb379c');
-		if ($workTypeValue !== null) {
-			update_field('field_5863a37bb379c', array($workTypeValue), $post_id);
-		}
-
-		// Update taxonomy terms
-
-		wp_set_post_terms($post_id, array_merge($location_terms,$workType_terms), 'jobs_category'); 
-		
-
-		wp_reset_postdata(); // Reset after each job ad processed
-
-		// Handle taxonomy terms (e.g., categories, locations) assignment here
-		// Example:
-		// wp_set_post_terms($post_id, $term_ids, 'taxonomy_name');
-		jobadder_log('-----End Processing Job-----', 'info');  
-		jobadder_log(' ', 'info');  
-		#exit; // Remove this line to process all job ads
+		jobadder_refresh_report($result, $options, '-----End Processing Job-----', 'info');
+		jobadder_refresh_report($result, $options, ' ', 'info');
 	}
 
-	update_option('jobadder_last_refresh', current_time('mysql'));
+	if (empty($options['dry_run'])) {
+		update_option('jobadder_last_refresh', current_time('mysql'));
+	} else {
+		jobadder_refresh_report($result, $options, '[dry-run] Skipped updating option jobadder_last_refresh.', 'debug');
+	}
 
-	jobadder_log('', 'info');  
-	jobadder_log('#####End updating jobs from JobAdder#####', 'info');  
-	jobadder_log('', 'info');  
+	$result['duration_seconds'] = microtime(true) - $result['start_time'];
+
+	jobadder_refresh_report($result, $options, '', 'info');
+	jobadder_refresh_report($result, $options, '#####End updating jobs from JobAdder#####', 'info', true);
+	jobadder_refresh_report($result, $options, 'Duration: ' . number_format($result['duration_seconds'], 2) . ' seconds.', 'info', true);
+	jobadder_refresh_report($result, $options, '', 'info');
+
+	if (!empty($result['errors'])) {
+		$result['success'] = false;
+	}
+
+	return $result;
+}
+
+function update_jobs_from_jobadder() {
+	jobadder_run_refresh();
 }
 
 if (defined('WP_CLI') && WP_CLI) {
 	/**
 	 * Updates jobs from JobAdder.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--verbose]
+	 * : Show more detailed output.
+	 *
+	 * [--jobadder-debug]
+	 * : Show very detailed debug output.
+	 *
+	 * [--dry-run]
+	 * : Simulate changes without writing updates.
+	 *
+	 * [--limit=<number>]
+	 * : Limit number of job ads processed.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp jobadder_update_jobs --verbose --jobadder-debug
+	 *     wp jobadder_update_jobs --dry-run --limit=10
 	 */
-	function wp_cli_update_jobs_from_jobadder() {
-		// Call your function here
-		update_jobs_from_jobadder();
+	function wp_cli_update_jobs_from_jobadder($args, $assoc_args) {
+		$limit = 0;
+		if (isset($assoc_args['limit'])) {
+			$limit = (int) $assoc_args['limit'];
+			if ($limit < 1) {
+				WP_CLI::error('--limit must be a positive integer.');
+			}
+		}
 
-		// Output a success message
+		$options = array(
+			'cli_mode' => true,
+			'verbose' => isset($assoc_args['verbose']),
+			'debug' => isset($assoc_args['jobadder-debug']),
+			'dry_run' => isset($assoc_args['dry-run']),
+			'limit' => $limit,
+		);
+
+		$result = jobadder_run_refresh($options);
+
+		$summary = sprintf(
+			'Summary: fetched=%d processed=%d created=%d updated=%d skipped=%d expired_to_draft=%d moved_to_recent=%d recruiter_misses=%d api_failures=%d duration=%.2fs',
+			(int) $result['counts']['fetched_ads'],
+			(int) $result['counts']['processed_ads'],
+			(int) $result['counts']['created_posts'],
+			(int) $result['counts']['updated_posts'],
+			(int) $result['counts']['skipped_ads'],
+			(int) $result['counts']['expired_to_draft'],
+			(int) $result['counts']['moved_to_recent'],
+			(int) $result['counts']['recruiter_misses'],
+			(int) $result['counts']['api_failures'],
+			(float) $result['duration_seconds']
+		);
+
+		WP_CLI::line($summary);
+
+		if (!empty($result['warnings'])) {
+			WP_CLI::line('Warnings:');
+			foreach ($result['warnings'] as $warning_message) {
+				WP_CLI::line(' - ' . $warning_message);
+			}
+		}
+
+		if (!empty($result['errors'])) {
+			WP_CLI::line('Errors:');
+			foreach ($result['errors'] as $error_message) {
+				WP_CLI::line(' - ' . $error_message);
+			}
+
+			WP_CLI::error('JobAdder refresh completed with errors.');
+		}
+
+		if (!empty($result['dry_run'])) {
+			WP_CLI::success('Dry run completed successfully.');
+			return;
+		}
+
 		WP_CLI::success('Jobs updated from JobAdder successfully.');
 	}
 
