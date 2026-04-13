@@ -18,8 +18,8 @@
   </div>
   <div class="row align-center shrink-width">
     <div class="column small-12 large-10 xlarge-8 text-center gm-bottom--3">
-      <div class="row small-up-2 large-up-<?php echo count($images); ?>">
-        <?php foreach ($images as $image): ?>
+      <div class="row small-up-2 large-up-<?php echo is_array($images) ? count($images) : 0; ?>">
+        <?php foreach ((is_array($images) ? $images : []) as $image): ?>
           <?php $img = $image['image']; ?>
           <div class="column gm-bottom--1">
             <div class="tooltip">

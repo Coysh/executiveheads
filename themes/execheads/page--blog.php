@@ -120,9 +120,9 @@ if (empty($hero_preview) && has_excerpt()) {
 	    <div class="column gm-bottom--1">
 	      <select name="subject">
 	        <option value="">All Subjects</option>
-	        <option <?php if($_GET['subject'] == 'executive-insight'): ?>selected="selected"<?php endif; ?> value="executive-insight">Executive Insight</option>
-	        <option <?php if($_GET['subject'] == 'head-2-head'): ?>selected="selected"<?php endif; ?> value="head-2-head">Head 2 Head</option>
-	        <option <?php if($_GET['subject'] == 'thought-leadership'): ?>selected="selected"<?php endif; ?> value="thought-leadership">Thought Leadership</option>
+	        <option <?php if(($_GET['subject'] ?? '') == 'executive-insight'): ?>selected="selected"<?php endif; ?> value="executive-insight">Executive Insight</option>
+	        <option <?php if(($_GET['subject'] ?? '') == 'head-2-head'): ?>selected="selected"<?php endif; ?> value="head-2-head">Head 2 Head</option>
+	        <option <?php if(($_GET['subject'] ?? '') == 'thought-leadership'): ?>selected="selected"<?php endif; ?> value="thought-leadership">Thought Leadership</option>
 	      </select>              
 	    </div>
 	  </div>
